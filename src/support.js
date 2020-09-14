@@ -37,7 +37,7 @@ function completeRequest(request, response) {
   }
 }
 
-Cypress.on('run:start', () => {
+before(() => {
   navigator.serviceWorker.addEventListener('message', message => {
     const event = JSON.parse(message.data)
     switch (event.type) {
@@ -52,9 +52,12 @@ Cypress.on('run:start', () => {
     }
   })
   worker = setupWorker()
-  worker.start({
-    serviceWorker: { url: '/cypress-msw-service-worker.js', shared: true },
-  })
+  cy.wrap(
+    worker.start({
+      serviceWorker: { url: '/cypress-msw-service-worker.js', shared: true },
+    }),
+    { log: false },
+  )
 })
 
 Cypress.on('test:before:run', () => {
