@@ -1,0 +1,56 @@
+{
+  "name": "cypress-msw-interceptor",
+  "version": "0.0.0-alpha.0",
+  "description": "A networking layer for Cypress using MSW",
+  "main": "index.js",
+  "scripts": {
+    "start": "snowpack dev",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "test": "will add this shortly"
+  },
+  "dependencies": {
+    "lodash": "^4.17.20",
+    "msw": "^0.21.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "peerDependencies": {
+    "cypress": "3 || 4"
+  },
+  "devDependencies": {
+    "@snowpack/app-scripts-react": "^1.10.0",
+    "babel-eslint": "^10.1.0",
+    "cypress": "^5.1.0",
+    "eslint": "^7.9.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-cypress": "^2.11.1",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-react": "^7.19.0",
+    "is-ci-cli": "^2.0.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.1.1",
+    "snowpack": "^2.11.1",
+    "start-server-and-test": "^1.11.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deshiknaves/cypress-msw-interceptor.git"
+  },
+  "keywords": [
+    "MSW",
+    "Serviceworker",
+    "Cypress",
+    "testing",
+    "mock",
+    "interceptor",
+    "integration",
+    "fetch"
+  ],
+  "author": "Deshiknaves",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/deshiknaves/cypress-msw-interceptor/issues"
+  },
+  "homepage": "https://github.com/deshiknaves/cypress-msw-interceptor#readme"
+}
