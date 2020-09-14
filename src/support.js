@@ -1,4 +1,5 @@
 /// <reference types="cypress" />
+require('cypress-wait-until')
 const { setupWorker, rest } = require('msw')
 const { last } = Cypress._
 

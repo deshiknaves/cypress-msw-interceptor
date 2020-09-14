@@ -3,3 +3,4 @@ build
 web_modules
 .vscode
 node_modules
+cypress/fixtures/example.json

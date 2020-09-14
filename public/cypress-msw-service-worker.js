@@ -46,6 +46,7 @@ self.addEventListener('message', async function (event) {
     case 'MOCK_ACTIVATE': {
       clients = ensureKeys(allClientIds, clients)
       clients[clientId] = true
+      sharedClientId = clientId
 
       sendToClient(client, {
         type: 'MOCKING_ENABLED',
@@ -54,17 +55,19 @@ self.addEventListener('message', async function (event) {
       break
     }
 
-    case 'SHARED_MOCK_ACTIVATE': {
-      clients = ensureKeys(allClientIds, clients)
-      clients[clientId] = true
-      sharedClientId = clientId
+    // This will only become available after
+    // PRs are accepted
+    // case 'SHARED_MOCK_ACTIVATE': {
+    //   clients = ensureKeys(allClientIds, clients)
+    //   clients[clientId] = true
+    //   sharedClientId = clientId
 
-      sendToClient(client, {
-        type: 'SHARED_MOCKING_ENABLED',
-        payload: true,
-      })
-      break
-    }
+    //   sendToClient(client, {
+    //     type: 'SHARED_MOCKING_ENABLED',
+    //     payload: true,
+    //   })
+    //   break
+    // }
 
     case 'MOCK_DEACTIVATE': {
       clients = ensureKeys(allClientIds, clients)
