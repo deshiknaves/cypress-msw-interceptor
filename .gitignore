@@ -4,3 +4,4 @@ web_modules
 .vscode
 node_modules
 cypress/fixtures/example.json
+public/cypress-msw-service-worker.js
