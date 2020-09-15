@@ -172,7 +172,7 @@ not others.
 
 In order to be able to run a test both as integration and end to end, it's
 important to be able to add assertions in your tests that are derived from the
-response that was returned from a request:
+`response`:
 
 ```javascript
 it('should be able to get the response and check that the correct text is displayed', () => {
@@ -274,7 +274,69 @@ it('should be able to update the mock', () => {
 })
 ```
 
-### More to come
+## MSW Service Worker
 
-If you're reading this, I have a few more things to write up before I make an
-alpha version available.
+To make this work, there 2 modifications that had to be made to the MSW service
+worker. These are:
+
+1. Add the ability for the `client` in Cypress to be able to provide the mocks
+   for the `client` in the application being tested (shared client).
+2. Add the ability for the service worker to be able to notify
+   `cypress-msw-interceptor` when a request is complete.
+
+At this point in time, this is done my having a copy of the service worker from
+MSW with these modifications. However, the intention is to raise some PRs and
+hopefully, will get included out of the box. The current implementation is just
+a stop gap till it is possible to do without a copy.
+
+### Shared Client
+
+Every application has their own `clientId` and MSW checks if mocks have been
+enabled for the `client` before intercepting the fetch requests. In this
+scenario that doesn't work, as we want the Cypress test runner to be able to
+define and intercept the mocks. To that end, I have modified the service worker
+to keep track of the `clientId` of the "shared" client and check that when
+making requests from the actual application.
+
+I have create a [draft PR](https://github.com/mswjs/msw/pull/383) that adds the
+ability to start the worker (`worker.start`) with an option to run it in a
+"shared" mode. The reason why this is still a draft is that I'd like some input
+from the maintainers — there might be better ways to do this.
+
+### Notify on completion
+
+In order to wait for `aliases` there needs to be a mechanism for the service
+worker to be able to notify when a request starts and when it is complete. Out
+of the box, there is a `message` (`REQUEST`) that can be emitted using
+`postMessage`. This has almost all the information needed. I've added a unique
+id to the request, so that we can track it.
+
+When a request is complete (mocked or unmocked), MSW needs to notify
+`cypress-msw-interceptor` that a request was complete. I have added a new
+`message` (`REQUEST_COMPLETE`) which provides all the context that is required.
+
+I haven't raised a PR yet, but will in the next day or so — been busy proving
+that this can be done.
+
+## Things remaining
+
+This is an alpha release and is rough around the edges. In the next while, I
+will complete some of these missing elements:
+
+- Currently, this only works with the `REST` api. This is only because it's
+  where I started. I don't forsee any reason why this won't translate to
+  `GraphQL`. Just needs time and testing.
+- Typescript definitions for the commands.
+- See what happens when both the application and Cypress provide a service
+  worker from MSW. I suggest not including the one in the application while
+  testing in Cypress — maybe though an environment variable.
+
+## Things I wish the Cypress plugin API would allow me to do
+
+- I wish there was a way to add `aliases` in a pill on the right side as
+  `cy.request` does. `Cypress.log` doesn't have a lot of options. Some messages
+  would be better unnested. However, these are purely cosmetic — I am a frontend
+  developer, I want it to be perfect.
+- Would be great if Cypress could host the service worker or serve static files.
+  It would be nice not to have to put it in the `public` folder of the
+  application.
