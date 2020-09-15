@@ -93,7 +93,8 @@ Cypress.Commands.add('getRequestCalls', alias => {
   })
 })
 
-Cypress.Commands.add('interceptRequest', function mock(method, route, fn) {
+Cypress.Commands.add('interceptRequest', function mock(type, route, fn) {
+  const method = type.toUpperCase()
   worker.use(
     rest[method.toLowerCase()](route, (req, res, ctx) => {
       function customResponse(...args) {
