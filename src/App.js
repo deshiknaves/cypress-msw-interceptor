@@ -21,18 +21,30 @@ function App() {
       })
   }
 
-  async function fetchError() {
-    await fetch('https://jsonplaceholder.typicode.com/fake').then(
-      async response => {
-        const json = await response.json()
-        if (!response.ok) {
-          setError(`Error: ${response.status}`)
-          return
-        }
-
-        setData(json)
+  function fetchMethod(method, body, suffix) {
+    fetch(`https://jsonplaceholder.typicode.com/todos${suffix || ''}`, {
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+      method,
+      body: body && JSON.stringify(body),
+    })
+      .then(response => response.json())
+      .then(json => {
+        setData(json)
+      })
+  }
+
+  function fetchError() {
+    fetch('https://jsonplaceholder.typicode.com/fake').then(async response => {
+      const json = await response.json()
+      if (!response.ok) {
+        setError(`Error: ${response.status}`)
+        return
+      }
+
+      setData(json)
+    })
   }
 
   return (
@@ -45,6 +57,39 @@ function App() {
         </button>
         <button type="button" onClick={getTodos}>
           Refetch
+        </button>
+        <button type="button" onClick={() => fetchMethod('GET')}>
+          GET
+        </button>
+        <button
+          type="button"
+          onClick={() => fetchMethod('POST', { foo: 'bar' })}
+        >
+          POST
+        </button>
+        <button
+          type="button"
+          onClick={() => fetchMethod('PUT', { foo: 'bar' }, '/1')}
+        >
+          PUT
+        </button>
+        <button
+          type="button"
+          onClick={() => fetchMethod('PATCH', { foo: 'bar' }, '/1')}
+        >
+          PATCH
+        </button>
+        <button
+          type="button"
+          onClick={() => fetchMethod('DELETE', undefined, '/1')}
+        >
+          DELETE
+        </button>
+        <button
+          type="button"
+          onClick={() => fetchMethod('OPTIONS', { foo: 'bar' }, '/1')}
+        >
+          OPTIONS
         </button>
       </div>
     </div>
