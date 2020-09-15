@@ -340,3 +340,19 @@ will complete some of these missing elements:
 - Would be great if Cypress could host the service worker or serve static files.
   It would be nice not to have to put it in the `public` folder of the
   application.
+
+## Contributing
+
+To start the development environment run:
+
+```shell
+$ yarn install
+$ yarn start
+```
+
+To run the Cypress tests run while the application is running in another
+terminal:
+
+```shell
+$ yarn run cypress:open
+```
