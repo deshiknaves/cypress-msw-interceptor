@@ -1,17 +1,27 @@
 /// <reference types="cypress" />
 require('cypress-wait-until')
 const { setupWorker, rest } = require('msw')
+const { match } = require('node-match-path')
 const { last } = Cypress._
 
 let worker
 let requests = {}
+let routes = new Set()
 
 function requestKey(request) {
+  return Array.from(routes).find(i => {
+    const [method, url] = i.split(/:(.+)/)
+    const routeMatched = match(url, request.url)
+    return request.method === method && routeMatched.matches
+  })
+}
+
+function makeUniqueKey(request) {
   return `${request.method}:${request.url}`
 }
 
 function registerRequest(request) {
-  const key = requestKey(request)
+  const key = requestKey(request) || makeUniqueKey(request)
   if (!requests[key]) {
     requests[key] = { complete: false, calls: [] }
   }
@@ -65,6 +75,7 @@ Cypress.on('test:before:run', () => {
 
   worker.resetHandlers()
   requests = {}
+  routes = new Set()
 })
 
 Cypress.on('window:before:load', win => {
@@ -118,5 +129,7 @@ Cypress.Commands.add('interceptRequest', function mock(type, route, fn) {
     }),
   )
 
-  return `${method}:${route}`
+  const key = `${method}:${route}`
+  routes.add(key)
+  return key
 })
