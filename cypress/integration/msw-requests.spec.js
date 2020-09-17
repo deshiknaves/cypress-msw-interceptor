@@ -14,11 +14,52 @@ describe('MSW Requests', () => {
     })
   })
 
+  it("should be able to wait for a request to happen that isn't mocked and has a matched path before it checks for the text", () => {
+    cy.interceptRequest(
+      'GET',
+      'https://jsonplaceholder.typicode.com/todos/:id',
+    ).as('todos')
+    cy.visit('/')
+
+    cy.waitForRequest('@todos').then(({ response }) => {
+      cy.getRequestCalls('@todos').then(calls => {
+        expect(calls).to.have.length(1)
+      })
+      cy.findByText(new RegExp(response.body.title, 'i')).should('be.visible')
+    })
+  })
+
   it('should be able to wait for a request to happen before it checks for the text', () => {
     cy.visit('/')
     cy.interceptRequest(
       'GET',
       'https://jsonplaceholder.typicode.com/todos/1',
+      (req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.json({
+            userId: 1,
+            id: 1,
+            title: 'Lord of the rings',
+            completed: false,
+          }),
+        )
+      },
+    ).as('todos')
+
+    cy.waitForRequest('@todos').then(({ response }) => {
+      cy.getRequestCalls('@todos').then(calls => {
+        expect(calls).to.have.length(1)
+      })
+      cy.findByText(new RegExp(response.body.title, 'i')).should('be.visible')
+    })
+  })
+
+  it('should be able to wait for a matched request to happen before it checks for the text', () => {
+    cy.visit('/')
+    cy.interceptRequest(
+      'GET',
+      'https://jsonplaceholder.typicode.com/todos/:id',
       (req, res, ctx) => {
         return res(
           ctx.delay(1000),
