@@ -155,4 +155,40 @@ describe('REST', () => {
 
     waitAndCheckAlias(/get/i, 'todo')
   })
+
+  describe('Resolutions', () => {
+    const allSizes = [
+      [375, 812],
+      [768, 1024],
+      [1280, 800],
+      [375, 812],
+      [768, 1024],
+      [1280, 800],
+    ]
+    allSizes.forEach(resolution => {
+      context('desktop, mobile and tablet resolutions', () => {
+        it(`Should display exchange properly on ${resolution} screen`, () => {
+          cy.viewport(resolution[0], resolution[1])
+          cy.interceptRequest(
+            'POST',
+            'https://jsonplaceholder.typicode.com/todos',
+            (req, res, ctx) => {
+              return res(
+                ctx.delay(1000),
+                ctx.json({
+                  userId: 1,
+                  id: 1,
+                  title: 'POST it',
+                  completed: false,
+                }),
+              )
+            },
+          ).as('postTodo')
+          cy.visit('/')
+          waitAndCheckAlias(/post/i, 'postTodo')
+          cy.screenshot(`${resolution[0]}-${resolution[1]}`)
+        })
+      })
+    })
+  })
 })
