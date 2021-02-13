@@ -7,11 +7,11 @@
 /* eslint-disable */
 /* tslint:disable */
 
-const INTEGRITY_CHECKSUM = '31b12020409151d0907f29132686ffdb'
+const INTEGRITY_CHECKSUM = 'dc3d39c97ba52ee7fff0d667f7bc098c'
 const bypassHeaderName = 'x-msw-bypass'
+let sharedClientId
 
 let clients = {}
-let sharedClientId
 
 self.addEventListener('install', function () {
   return self.skipWaiting()
@@ -23,7 +23,17 @@ self.addEventListener('activate', async function (event) {
 
 self.addEventListener('message', async function (event) {
   const clientId = event.source.id
-  const client = await event.currentTarget.clients.get(clientId)
+
+  if (!clientId || !self.clients) {
+    return
+  }
+
+  const client = await self.clients.get(clientId)
+
+  if (!client) {
+    return
+  }
+
   const allClients = await self.clients.matchAll()
   const allClientIds = allClients.map(client => client.id)
 
@@ -55,20 +65,6 @@ self.addEventListener('message', async function (event) {
       break
     }
 
-    // This will only become available after
-    // PRs are accepted
-    // case 'SHARED_MOCK_ACTIVATE': {
-    //   clients = ensureKeys(allClientIds, clients)
-    //   clients[clientId] = true
-    //   sharedClientId = clientId
-
-    //   sendToClient(client, {
-    //     type: 'SHARED_MOCKING_ENABLED',
-    //     payload: true,
-    //   })
-    //   break
-    // }
-
     case 'MOCK_DEACTIVATE': {
       clients = ensureKeys(allClientIds, clients)
       clients[clientId] = false
@@ -90,10 +86,23 @@ self.addEventListener('message', async function (event) {
   }
 })
 
-self.addEventListener('fetch', async function (event) {
+self.addEventListener('fetch', function (event) {
   const { request } = event
+  const clientId = sharedClientId || event.clientId
+  const requestId = uuidv4()
   const requestClone = request.clone()
   const getOriginalResponse = () => fetch(requestClone)
+
+  // Bypass navigation requests.
+  if (request.mode === 'navigate') {
+    return
+  }
+
+  // Bypass mocking if the current client isn't present in the internal clients map
+  // (i.e. has the mocking disabled).
+  if (!clients[clientId]) {
+    return
+  }
 
   // Opening the DevTools triggers the "only-if-cached" request
   // that cannot be handled by the worker. Bypass such requests.
@@ -103,23 +112,17 @@ self.addEventListener('fetch', async function (event) {
 
   event.respondWith(
     new Promise(async (resolve, reject) => {
-      const clientId = sharedClientId || event.clientId
-      const client = await event.target.clients.get(clientId)
+      const client = await self.clients.get(clientId)
 
-      if (
-        // Bypass mocking when no clients active
-        !client ||
-        // Bypass mocking if the current client has mocking disabled
-        !clients[clientId] ||
-        // Bypass mocking for navigation requests
-        request.mode === 'navigate'
-      ) {
+      // Bypass mocking when the request client is not active.
+      if (!client) {
         return resolve(getOriginalResponse())
       }
 
       // Bypass requests with the explicit bypass header
       if (requestClone.headers.get(bypassHeaderName) === 'true') {
         const modifiedHeaders = serializeHeaders(requestClone.headers)
+
         // Remove the bypass header to comply with the CORS preflight check
         delete modifiedHeaders[bypassHeaderName]
 
@@ -132,75 +135,41 @@ self.addEventListener('fetch', async function (event) {
 
       const reqHeaders = serializeHeaders(request.headers)
       const body = await request.text()
-      const payload = {
-        id: await event.currentTarget.crypto.getRandomValues(
-          new Uint32Array(1),
-        )[0],
-        url: request.url,
-        method: request.method,
-        headers: reqHeaders,
-        cache: request.cache,
-        mode: request.mode,
-        credentials: request.credentials,
-        destination: request.destination,
-        integrity: request.integrity,
-        redirect: request.redirect,
-        referrer: request.referrer,
-        referrerPolicy: request.referrerPolicy,
-        body,
-        bodyUsed: request.bodyUsed,
-        keepalive: request.keepalive,
-      }
 
       const rawClientMessage = await sendToClient(client, {
         type: 'REQUEST',
-        payload,
+        payload: {
+          id: requestId,
+          url: request.url,
+          method: request.method,
+          headers: reqHeaders,
+          cache: request.cache,
+          mode: request.mode,
+          credentials: request.credentials,
+          destination: request.destination,
+          integrity: request.integrity,
+          redirect: request.redirect,
+          referrer: request.referrer,
+          referrerPolicy: request.referrerPolicy,
+          body,
+          bodyUsed: request.bodyUsed,
+          keepalive: request.keepalive,
+        },
       })
 
       const clientMessage = rawClientMessage
 
-      async function requestComplete(response) {
-        return sendToClient(client, {
-          type: 'REQUEST_COMPLETE',
-          request: payload,
-          response,
-        })
-      }
-
       switch (clientMessage.type) {
         case 'MOCK_SUCCESS': {
-          setTimeout(async () => {
-            await resolve.call(this, createResponse(clientMessage))
-            await requestComplete(clientMessage.payload)
-          }, clientMessage.payload.delay)
+          setTimeout(
+            resolve.bind(this, createResponse(clientMessage)),
+            clientMessage.payload.delay,
+          )
           break
         }
 
         case 'MOCK_NOT_FOUND': {
-          const response = await getOriginalResponse()
-          const cloned = response.clone()
-          const body = await cloned.text()
-
-          requestComplete({
-            ok: cloned.ok,
-            status: cloned.status,
-            statusText: cloned.statusText,
-            url: cloned.url,
-            method: cloned.method,
-            headers: serializeHeaders(cloned.headers),
-            cache: cloned.cache,
-            mode: cloned.mode,
-            credentials: cloned.credentials,
-            destination: cloned.destination,
-            integrity: cloned.integrity,
-            redirect: cloned.redirect,
-            referrer: cloned.referrer,
-            referrerPolicy: cloned.referrerPolicy,
-            bodyUsed: cloned.bodyUsed,
-            body,
-          })
-
-          return resolve(response)
+          return resolve(getOriginalResponse())
         }
 
         case 'NETWORK_ERROR': {
@@ -232,14 +201,36 @@ If you wish to mock an error response, please refer to this guide: https://mswjs
           return resolve(createResponse(clientMessage))
         }
       }
-    }).catch(error => {
-      console.error(
-        '[MSW] Failed to mock a "%s" request to "%s": %s',
-        request.method,
-        request.url,
-        error,
-      )
-    }),
+    })
+      .then(async response => {
+        const client = await self.clients.get(clientId)
+        const clonedResponse = response.clone()
+
+        sendToClient(client, {
+          type: 'RESPONSE',
+          payload: {
+            requestId,
+            type: clonedResponse.type,
+            ok: clonedResponse.ok,
+            status: clonedResponse.status,
+            statusText: clonedResponse.statusText,
+            body:
+              clonedResponse.body === null ? null : await clonedResponse.text(),
+            headers: serializeHeaders(clonedResponse.headers),
+            redirected: clonedResponse.redirected,
+          },
+        })
+
+        return response
+      })
+      .catch(error => {
+        console.error(
+          '[MSW] Failed to mock a "%s" request to "%s": %s',
+          request.method,
+          request.url,
+          error,
+        )
+      }),
   )
 })
 
@@ -284,4 +275,12 @@ function ensureKeys(keys, obj) {
 
     return acc
   }, {})
+}
+
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0
+    const v = c == 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
 }
