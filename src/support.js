@@ -7,6 +7,7 @@ const { last } = Cypress._
 let worker
 let requests = {}
 let routes = new Set()
+let requestMap = {}
 
 function requestKey(request) {
   return Array.from(routes).find(i => {
@@ -28,46 +29,48 @@ function registerRequest(request) {
 
   requests[key].complete = false
   requests[key].calls.push({ id: request.id, request, complete: false })
+  requestMap[request.id] = key
 }
 
-function completeRequest(request, response) {
-  const key = requestKey(request)
+async function completeRequest(response, requestId) {
+  const body = await response.body
+    .getReader()
+    .read()
+    .then(({ value }) => {
+      const text = new TextDecoder('utf-8').decode(value)
+      try {
+        return JSON.parse(text)
+      } catch (err) {
+        return text
+      }
+    })
+
+  const key = requestMap[requestId]
   if (!requests[key]) return
   requests[key].complete = true
-  const call = requests[key].calls.find(i => i.id === request.id)
+  const call = requests[key].calls.find(i => i.id === requestId)
   if (!call) return
+  Object.defineProperty(response, 'body', { writable: true })
   call.response = response
   call.complete = true
-
-  try {
-    const body = JSON.parse(response.body)
-    call.response.body = body
-  } catch (err) {
-    // Ignore and return the string
-  }
+  call.response.body = body
 }
 
 before(() => {
-  navigator.serviceWorker.addEventListener('message', message => {
-    const event = JSON.parse(message.data)
-    switch (event.type) {
-      case 'REQUEST': {
-        registerRequest(event.payload)
-        break
-      }
-      case 'REQUEST_COMPLETE': {
-        completeRequest(event.request, event.response)
-        break
-      }
-    }
-  })
   worker = setupWorker()
+  worker.on('request:start', registerRequest)
+  worker.on('response:mocked', completeRequest)
+  worker.on('response:bypass', completeRequest)
   cy.wrap(
     worker.start({
-      serviceWorker: { url: '/cypress-msw-service-worker.js', shared: true },
+      serviceWorker: { url: '/cypress-msw-service-worker.js' },
     }),
     { log: false },
-  )
+  ).then(() => {
+    console.warn(
+      'Please disregard the above warning. cypress-msw-interceptor uses a patched version on MSW Service Worker to enable request interception',
+    )
+  })
 })
 
 Cypress.on('test:before:run', () => {
@@ -75,6 +78,7 @@ Cypress.on('test:before:run', () => {
 
   worker.resetHandlers()
   requests = {}
+  requestMap = {}
   routes = new Set()
 })
 
