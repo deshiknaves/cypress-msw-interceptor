@@ -31,3 +31,5 @@ jobs:
           # wait for 5 minutes for the server to respond
           wait-on-timeout: 300
           env: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
