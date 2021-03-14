@@ -61,12 +61,7 @@ before(() => {
   worker.on('request:start', registerRequest)
   worker.on('response:mocked', completeRequest)
   worker.on('response:bypass', completeRequest)
-  cy.wrap(
-    worker.start({
-      serviceWorker: { url: '/cypress-msw-service-worker.js' },
-    }),
-    { log: false },
-  ).then(() => {
+  cy.wrap(worker.start(), { log: false }).then(() => {
     console.warn(
       'Please disregard the above warning. cypress-msw-interceptor uses a patched version on MSW Service Worker to enable request interception',
     )
