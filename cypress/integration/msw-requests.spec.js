@@ -102,10 +102,10 @@ describe('MSW Requests', () => {
 
   it('should be able to return an error state', () => {
     cy.visit('/')
-    cy.findByRole('button', { name: /error/i }).click()
     cy.interceptRequest('GET', 'https://jsonplaceholder.typicode.com/fake').as(
       'fake',
     )
+    cy.findByRole('button', { name: /error/i }).click()
     cy.waitForRequest('@fake').then(({ response }) => {
       cy.getRequestCalls('@fake').then(calls => {
         expect(calls).to.have.length(1)
