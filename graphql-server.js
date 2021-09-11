@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors')
 const { graphqlHTTP } = require('express-graphql')
 const { buildSchema } = require('graphql') // GraphQL schema
 var schema = buildSchema(`
@@ -84,6 +85,7 @@ const root = {
 }
 
 const app = express()
+app.use(cors())
 app.use(
   '/graphql',
   graphqlHTTP({
