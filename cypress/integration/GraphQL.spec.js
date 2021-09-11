@@ -9,7 +9,7 @@ describe('GraphQL', () => {
     })
   }
 
-  it.only('should be able to mock a request', () => {
+  it('should be able to mock a request', () => {
     cy.interceptQuery('CoursesQuery', (req, res, ctx) => {
       return res(
         ctx.delay(1000),
@@ -48,6 +48,10 @@ describe('GraphQL', () => {
 
     cy.findByRole('button', { name: /mutate graphql/i }).click()
 
-    cy.findByText(/get me some data/i).should('be.visible')
+    cy.waitForMutation('@updateCourse').then(({ response }) => {
+      cy.findByText(new RegExp(response.body.data.title, 'i')).should(
+        'be.visible',
+      )
+    })
   })
 })
