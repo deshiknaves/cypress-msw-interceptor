@@ -17,12 +17,12 @@
     "chalk": "^4.1.2",
     "cypress-wait-until": "^1.7.1",
     "lodash": "^4.17.21",
-    "msw": "0.35.0",
     "node-match-path": "^0.6.3",
     "prop-types": "^15.7.2"
   },
   "peerDependencies": {
-    "cypress": "3 || 4"
+    "cypress": "3 || 4",
+    "msw": "^0.35.0"
   },
   "devDependencies": {
     "@snowpack/plugin-dotenv": "^2.1.0",
