@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react'
+import { createClient, Provider } from 'urql'
 import './App.css'
+import { GraphQL } from './GraphQL'
+
+const client = createClient({
+  url: 'http://localhost:4000/graphql',
+})
 
 function App() {
   const [error, setError] = useState()
@@ -48,51 +54,55 @@ function App() {
   }
 
   return (
-    <div className="App">
-      {error && <p>{error}</p>}
-      {data && <p>{JSON.stringify(data, null, 2)}</p>}
-      <div>
-        <button type="button" onClick={fetchError}>
-          Error
-        </button>
-        <button type="button" onClick={getTodos}>
-          Refetch
-        </button>
-        <button type="button" onClick={() => fetchMethod('GET')}>
-          GET
-        </button>
-        <button
-          type="button"
-          onClick={() => fetchMethod('POST', { foo: 'bar' })}
-        >
-          POST
-        </button>
-        <button
-          type="button"
-          onClick={() => fetchMethod('PUT', { foo: 'bar' }, '/1')}
-        >
-          PUT
-        </button>
-        <button
-          type="button"
-          onClick={() => fetchMethod('PATCH', { foo: 'bar' }, '/1')}
-        >
-          PATCH
-        </button>
-        <button
-          type="button"
-          onClick={() => fetchMethod('DELETE', undefined, '/1')}
-        >
-          DELETE
-        </button>
-        <button
-          type="button"
-          onClick={() => fetchMethod('OPTIONS', { foo: 'bar' }, '/1')}
-        >
-          OPTIONS
-        </button>
+    <Provider value={client}>
+      <div className="App">
+        {error && <p>{error}</p>}
+        {data && <p>{JSON.stringify(data, null, 2)}</p>}
+        <div>
+          <h2>REST</h2>
+          <button type="button" onClick={fetchError}>
+            Error
+          </button>
+          <button type="button" onClick={getTodos}>
+            Refetch
+          </button>
+          <button type="button" onClick={() => fetchMethod('GET')}>
+            GET
+          </button>
+          <button
+            type="button"
+            onClick={() => fetchMethod('POST', { foo: 'bar' })}
+          >
+            POST
+          </button>
+          <button
+            type="button"
+            onClick={() => fetchMethod('PUT', { foo: 'bar' }, '/1')}
+          >
+            PUT
+          </button>
+          <button
+            type="button"
+            onClick={() => fetchMethod('PATCH', { foo: 'bar' }, '/1')}
+          >
+            PATCH
+          </button>
+          <button
+            type="button"
+            onClick={() => fetchMethod('DELETE', undefined, '/1')}
+          >
+            DELETE
+          </button>
+          <button
+            type="button"
+            onClick={() => fetchMethod('OPTIONS', { foo: 'bar' }, '/1')}
+          >
+            OPTIONS
+          </button>
+        </div>
+        <GraphQL onData={setData} />
       </div>
-    </div>
+    </Provider>
   )
 }
 
