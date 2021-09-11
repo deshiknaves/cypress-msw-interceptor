@@ -1,11 +1,11 @@
 describe('GraphQL', () => {
-  function waitAndCheckAlias(name, alias) {
+  function waitAndCheckAlias(name, alias, type = 'Query') {
     cy.findByRole('button', { name }).click()
-    cy.waitForRequest(`@${alias}`).then(({ response }) => {
-      cy.getRequestCalls(`@${alias}`).then(calls => {
+    cy.[`waitFor${type}`](`@${alias}`).then(({ response }) => {
+      cy.[`get${type}Calls`](`@${alias}`).then(calls => {
         expect(calls).to.have.length(1)
       })
-      cy.findByText(new RegExp(response.body.title, 'i')).should('be.visible')
+      cy.findByText(new RegExp(response.body.data.title, 'i')).should('be.visible')
     })
   }
 
@@ -25,11 +25,7 @@ describe('GraphQL', () => {
 
     cy.findByRole('button', { name: /get graphql/i }).click()
 
-    cy.waitForQuery('@courses').then(({ response }) => {
-      cy.findByText(new RegExp(response.body.data.title, 'i')).should(
-        'be.visible',
-      )
-    })
+    waitAndCheckAlias(/get graphql/i, 'courses', 'Query')
   })
 
   it('should be able to mock a mutation', () => {
@@ -46,12 +42,6 @@ describe('GraphQL', () => {
     }).as('updateCourse')
     cy.visit('/')
 
-    cy.findByRole('button', { name: /mutate graphql/i }).click()
-
-    cy.waitForMutation('@updateCourse').then(({ response }) => {
-      cy.findByText(new RegExp(response.body.data.title, 'i')).should(
-        'be.visible',
-      )
-    })
+    waitAndCheckAlias(/mutate graphql/i, 'updateCourse', 'Mutation')
   })
 })

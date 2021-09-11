@@ -246,6 +246,18 @@ Cypress.Commands.add('getRequestCalls', alias => {
   })
 })
 
+Cypress.Commands.add('getQueryCalls', alias => {
+  cy.get(alias, { log: false }).then(operationName => {
+    return cy.wrap(queries[operationName].calls, { log: false })
+  })
+})
+
+Cypress.Commands.add('getMutationCalls', alias => {
+  cy.get(alias, { log: false }).then(operationName => {
+    return cy.wrap(mutations[operationName].calls, { log: false })
+  })
+})
+
 Cypress.Commands.add('interceptRequest', function mock(type, route, fn) {
   const method = type.toUpperCase()
   worker.use(
