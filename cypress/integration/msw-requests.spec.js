@@ -6,6 +6,7 @@ describe('MSW Requests', () => {
     ).as('todos')
     cy.visit('/')
 
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.waitForRequest('@todos').then(({ response }) => {
       cy.getRequestCalls('@todos').then(calls => {
         expect(calls).to.have.length(1)
@@ -21,6 +22,7 @@ describe('MSW Requests', () => {
     ).as('todos')
     cy.visit('/')
 
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.waitForRequest('@todos').then(({ response }) => {
       cy.getRequestCalls('@todos').then(calls => {
         expect(calls).to.have.length(1)
@@ -47,6 +49,7 @@ describe('MSW Requests', () => {
       },
     ).as('todos')
 
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.waitForRequest('@todos').then(({ response }) => {
       cy.getRequestCalls('@todos').then(calls => {
         expect(calls).to.have.length(1)
@@ -73,6 +76,7 @@ describe('MSW Requests', () => {
       },
     ).as('todos')
 
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.waitForRequest('@todos').then(({ response }) => {
       cy.getRequestCalls('@todos').then(calls => {
         expect(calls).to.have.length(1)
@@ -97,6 +101,7 @@ describe('MSW Requests', () => {
         )
       },
     )
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.findByText(/the outsider/i).should('be.visible')
   })
 
@@ -133,6 +138,7 @@ describe('MSW Requests', () => {
       },
     ).as('todos')
 
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.waitForRequest('@todos')
     cy.getRequestCalls('@todos').then(calls => {
       expect(calls).to.have.length(1)

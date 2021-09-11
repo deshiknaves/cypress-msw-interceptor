@@ -27,7 +27,7 @@ describe('REST', () => {
       },
     ).as('todo')
 
-    waitAndCheckAlias(/^get$/i, 'todo')
+    waitAndCheckAlias(/^refetch$/i, 'todo')
   })
 
   it('should be able to mock a POST request', () => {
@@ -153,6 +153,6 @@ describe('REST', () => {
       },
     ).as('todo')
 
-    waitAndCheckAlias(/^get$/i, 'todo')
+    waitAndCheckAlias(/^refetch$/i, 'todo')
   })
 })
