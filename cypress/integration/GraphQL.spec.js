@@ -25,7 +25,11 @@ describe('GraphQL', () => {
 
     cy.findByRole('button', { name: /get graphql/i }).click()
 
-    cy.findByText(/get me some data/i).should('be.visible')
+    cy.waitForQuery('@courses').then(({ response }) => {
+      cy.findByText(new RegExp(response.body.data.title, 'i')).should(
+        'be.visible',
+      )
+    })
   })
 
   it('should be able to mock a mutation', () => {

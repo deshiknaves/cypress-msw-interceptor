@@ -16,6 +16,7 @@ let requests = {}
 let mutations = {}
 let queries = {}
 let routes = new Set()
+let operations = new Set()
 let requestMap = {}
 
 function requestKey(request) {
@@ -134,6 +135,7 @@ Cypress.on('test:before:run', () => {
   requestTypes = {}
   queries = {}
   routes = new Set()
+  operations = new Set()
 })
 
 Cypress.on('window:before:load', win => {
@@ -152,6 +154,23 @@ Cypress.Commands.add('waitForRequest', alias => {
       log: false,
     }).then(() => {
       cy.wrap(last(requests[url].calls), { log: false })
+    })
+  })
+})
+
+Cypress.Commands.add('waitForQuery', alias => {
+  cy.get(alias).then(operationName => {
+    Cypress.log({
+      displayName: 'Waiting for query',
+      message: `${alias} — ${operationName}`,
+    })
+    cy.waitUntil(
+      () => queries[operationName] && queries[operationName].complete,
+      {
+        log: false,
+      },
+    ).then(() => {
+      cy.wrap(last(queries[operationName].calls), { log: false })
     })
   })
 })
@@ -215,6 +234,9 @@ Cypress.Commands.add('interceptQuery', function mock(name, fn) {
       return fn(req, customResponse, ctx)
     }),
   )
+
+  operations.add(name)
+  return name
 })
 
 Cypress.Commands.add('interceptMutation', function mock(name, fn) {
