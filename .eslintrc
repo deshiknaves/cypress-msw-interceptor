@@ -4,7 +4,6 @@
     "eslint:recommended",
     "plugin:react/recommended",
     "eslint-config-prettier",
-    "eslint-config-prettier/@typescript-eslint",
     "plugin:cypress/recommended"
   ],
   "parserOptions": {
@@ -14,9 +13,14 @@
       "jsx": true
     }
   },
-  "plugins": ["import"],
+  "plugins": [
+    "import"
+  ],
   "rules": {
-    "strict": ["error", "never"]
+    "strict": [
+      "error",
+      "never"
+    ]
   },
   "env": {
     "es6": true,
