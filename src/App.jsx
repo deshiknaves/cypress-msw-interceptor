@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { createClient, Provider } from 'urql'
 import './App.css'
 import { GraphQL } from './GraphQL'
@@ -10,10 +10,6 @@ const client = createClient({
 function App() {
   const [error, setError] = useState()
   const [data, setData] = useState()
-
-  useEffect(() => {
-    getTodos()
-  }, [])
 
   function getTodos() {
     fetch('https://jsonplaceholder.typicode.com/todos/1', {

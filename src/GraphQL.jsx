@@ -3,7 +3,7 @@ import T from 'prop-types'
 import { useQuery, useMutation } from 'urql'
 
 const CoursesQuery = `
-  query ($topic: String!) {
+  query CoursesQuery($topic: String!) {
     courses(topic: $topic) {
       id
       title
@@ -12,7 +12,7 @@ const CoursesQuery = `
 `
 
 const UpdateCourse = `
-  mutation ($id: Int!, $topic: String!) {
+  mutation UpdateCourse($id: Int!, $topic: String!) {
     updateCourseTopic(id: $id, topic: $topic) {
       id
       author
