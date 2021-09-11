@@ -240,23 +240,17 @@ Cypress.Commands.add('waitForMutation', alias => {
   })
 })
 
-Cypress.Commands.add('getRequestCalls', alias => {
-  cy.get(alias, { log: false }).then(url => {
-    return cy.wrap(requests[url].calls, { log: false })
+const createGetCalls = type => alias => {
+  cy.get(alias, { log: false }).then(name => {
+    return cy.wrap(type[name].calls, { log: false })
   })
-})
+}
 
-Cypress.Commands.add('getQueryCalls', alias => {
-  cy.get(alias, { log: false }).then(operationName => {
-    return cy.wrap(queries[operationName].calls, { log: false })
-  })
-})
+Cypress.Commands.add('getRequestCalls', createGetCalls(requests))
 
-Cypress.Commands.add('getMutationCalls', alias => {
-  cy.get(alias, { log: false }).then(operationName => {
-    return cy.wrap(mutations[operationName].calls, { log: false })
-  })
-})
+Cypress.Commands.add('getQueryCalls', createGetCalls(queries))
+
+Cypress.Commands.add('getMutationCalls', createGetCalls(mutations))
 
 Cypress.Commands.add('interceptRequest', function mock(type, route, fn) {
   const method = type.toUpperCase()
