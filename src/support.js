@@ -240,40 +240,44 @@ Cypress.Commands.add('waitForMutation', alias => {
   })
 })
 
-const createGetCalls = type => alias => {
+function getCalls(type, alias) {
   cy.get(alias, { log: false }).then(name => {
     return cy.wrap(type[name].calls, { log: false })
   })
 }
 
-Cypress.Commands.add('getRequestCalls', createGetCalls(requests))
+Cypress.Commands.add('getRequestCalls', alias => getCalls(requests, alias))
 
-Cypress.Commands.add('getQueryCalls', createGetCalls(queries))
+Cypress.Commands.add('getQueryCalls', alias => getCalls(queries, alias))
 
-Cypress.Commands.add('getMutationCalls', createGetCalls(mutations))
+Cypress.Commands.add('getMutationCalls', alias => getCalls(mutations, alias))
+
+function interceptHandler(req, res, ctx, fn, log) {
+  function customResponse(...args) {
+    const response = res(...args)
+    Cypress.log(log(response))
+    return response
+  }
+
+  if (!fn) return
+
+  return fn(req, customResponse, ctx)
+}
 
 Cypress.Commands.add('interceptRequest', function mock(type, route, fn) {
   const method = type.toUpperCase()
   worker.use(
     rest[method.toLowerCase()](route, (req, res, ctx) => {
-      function customResponse(...args) {
-        const response = res(...args)
-        Cypress.log({
-          displayName: 'fetch [MSW]',
-          message: `${method} ${req.url.href}`,
-          consoleProps: () => ({
-            method,
-            url: req.url.href,
-            request: req,
-            response,
-          }),
-        })
-        return response
-      }
-
-      if (!fn) return
-
-      return fn(req, customResponse, ctx)
+      return interceptHandler(req, res, ctx, fn, response => ({
+        displayName: 'fetch [MSW]',
+        message: `${method} ${req.url.href}`,
+        consoleProps: () => ({
+          method,
+          url: req.url.href,
+          request: req,
+          response,
+        }),
+      }))
     }),
   )
 
@@ -285,24 +289,16 @@ Cypress.Commands.add('interceptRequest', function mock(type, route, fn) {
 Cypress.Commands.add('interceptQuery', function mock(name, fn) {
   worker.use(
     graphql.query(name, (req, res, ctx) => {
-      function customResponse(...args) {
-        const response = res(...args)
-        Cypress.log({
-          displayName: 'query [MSW]',
-          message: `${name} ${req.url.href}`,
-          consoleProps: () => ({
-            name,
-            url: req.url.href,
-            request: req,
-            response,
-          }),
-        })
-        return response
-      }
-
-      if (!fn) return
-
-      return fn(req, customResponse, ctx)
+      return interceptHandler(req, res, ctx, fn, response => ({
+        displayName: 'query [MSW]',
+        message: `${name} ${req.url.href}`,
+        consoleProps: () => ({
+          name,
+          url: req.url.href,
+          request: req,
+          response,
+        }),
+      }))
     }),
   )
 
@@ -312,24 +308,16 @@ Cypress.Commands.add('interceptQuery', function mock(name, fn) {
 Cypress.Commands.add('interceptMutation', function mock(name, fn) {
   worker.use(
     graphql.mutation(name, (req, res, ctx) => {
-      function customResponse(...args) {
-        const response = res(...args)
-        Cypress.log({
-          displayName: 'mutation [MSW]',
-          message: `${name} ${req.url.href}`,
-          consoleProps: () => ({
-            name,
-            url: req.url.href,
-            request: req,
-            response,
-          }),
-        })
-        return response
-      }
-
-      if (!fn) return
-
-      return fn(req, customResponse, ctx)
+      return interceptHandler(req, res, ctx, fn, response => ({
+        displayName: 'mutation [MSW]',
+        message: `${name} ${req.url.href}`,
+        consoleProps: () => ({
+          name,
+          url: req.url.href,
+          request: req,
+          response,
+        }),
+      }))
     }),
   )
 
