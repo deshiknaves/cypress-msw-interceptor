@@ -25,7 +25,8 @@ describe('REST', () => {
           }),
         )
       },
-    ).as('todo')
+      'todo',
+    )
 
     waitAndCheckAlias(/^refetch$/i, 'todo')
   })
@@ -46,7 +47,8 @@ describe('REST', () => {
           }),
         )
       },
-    ).as('postTodo')
+      'postTodo',
+    )
 
     waitAndCheckAlias(/post/i, 'postTodo')
   })
@@ -67,7 +69,8 @@ describe('REST', () => {
           }),
         )
       },
-    ).as('putTodo')
+      'putTodo',
+    )
 
     waitAndCheckAlias(/put/i, 'putTodo')
   })
@@ -88,7 +91,8 @@ describe('REST', () => {
           }),
         )
       },
-    ).as('patchTodo')
+      'patchTodo',
+    )
 
     waitAndCheckAlias(/patch/i, 'patchTodo')
   })
@@ -109,7 +113,8 @@ describe('REST', () => {
           }),
         )
       },
-    ).as('deleteTodo')
+      'deleteTodo',
+    )
 
     waitAndCheckAlias(/delete/i, 'deleteTodo')
   })
@@ -130,7 +135,8 @@ describe('REST', () => {
           }),
         )
       },
-    ).as('options')
+      'options',
+    )
 
     waitAndCheckAlias(/options/i, 'options')
   })
@@ -151,7 +157,8 @@ describe('REST', () => {
           }),
         )
       },
-    ).as('todo')
+      'todo',
+    )
 
     waitAndCheckAlias(/^refetch$/i, 'todo')
   })
