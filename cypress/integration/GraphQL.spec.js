@@ -25,8 +25,6 @@ describe('GraphQL', () => {
     }, 'courses')
     cy.visit('/')
 
-    cy.findByRole('button', { name: /get graphql/i }).click()
-
     waitAndCheckAlias(/get graphql/i, 'courses', 'Query')
   })
 
@@ -56,5 +54,19 @@ describe('GraphQL', () => {
     cy.visit('/')
 
     waitAndCheckAlias(/mutate graphql/i, 'updateCourse', 'Mutation')
+  })
+
+  it('should be able to wait for a mutation that isn\'t mocked', () => {
+    cy.interceptMutation('UpdateCourse', 'updateCourse')
+    cy.visit('/')
+
+    cy.findByRole('button', { name: /mutate graphql/i }).click()
+
+    cy.waitForMutation('@updateCourse').then(({ response }) => {
+      cy.getMutationCalls(`@updateCourse`).then(calls => {
+        expect(calls).to.have.length(1)
+      })
+      cy.findByText(new RegExp(response.body.data.updateCourseTopic.description, 'i')).should('be.visible')
+    })
   })
 })
