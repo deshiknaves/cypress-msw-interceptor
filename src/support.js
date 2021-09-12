@@ -237,9 +237,10 @@ Cypress.on('window:before:load', win => {
 Cypress.Commands.add('waitForRequest', alias => {
   cy.get(alias, { log: false }).then(url => {
     Cypress.log({
+      alias,
       displayName: 'Wait',
       name: 'wait',
-      message: `${alias}}`,
+      message: '',
     })
     cy.waitUntil(() => requests[url] && requests[url].complete, {
       log: false,
@@ -252,9 +253,10 @@ Cypress.Commands.add('waitForRequest', alias => {
 Cypress.Commands.add('waitForQuery', alias => {
   cy.get(alias, { log: false }).then(operationName => {
     Cypress.log({
+      alias,
       displayName: 'Wait',
       name: 'wait',
-      message: `${alias}`,
+      message: '',
     })
     cy.waitUntil(
       () => queries[operationName] && queries[operationName].complete,
@@ -270,8 +272,10 @@ Cypress.Commands.add('waitForQuery', alias => {
 Cypress.Commands.add('waitForMutation', alias => {
   cy.get(alias, { log: false }).then(operationName => {
     Cypress.log({
+      alias,
       displayName: 'Wait',
-      message: `${alias}`,
+      name: 'wait',
+      message: '',
     })
     cy.waitUntil(
       () => mutations[operationName] && mutations[operationName].complete,
