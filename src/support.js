@@ -225,6 +225,7 @@ Cypress.on('test:before:run', () => {
   queries = {}
   routes = new Set()
   aliases = {}
+  mutations = {}
 })
 
 Cypress.on('window:before:load', win => {
