@@ -67,7 +67,7 @@ workflows:
   main:
     when:
       and:
-        - equal: [main, << pipeline.git.branch >>]
+        - equal: [feature/graphql, << pipeline.git.branch >>]
         - equal: [publish, << pipeline.parameters.task >>]
     jobs:
       - cypress/install:

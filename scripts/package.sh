@@ -32,4 +32,4 @@ CI=true yarn build
 exit_if_error "unable to build package"
 
 # Publish package to npm
-yarn publish
+# yarn publish
