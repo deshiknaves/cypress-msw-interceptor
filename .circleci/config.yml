@@ -68,7 +68,7 @@ workflows:
     when:
       and:
         - equal: [feature/graphql, << pipeline.git.branch >>]
-        - equal: [publish, << pipeline.parameters.task >>]
+        - equal: [default, << pipeline.parameters.task >>]
     jobs:
       - cypress/install:
           executor: with-chrome
