@@ -32,8 +32,6 @@ describe('GraphQL', () => {
     cy.interceptQuery('CoursesQuery', 'courses')
     cy.visit('/')
 
-    cy.findByRole('button', { name: /get graphql/i }).click()
-
     waitAndCheckAlias(/get graphql/i, 'courses', 'Query')
   })
 
