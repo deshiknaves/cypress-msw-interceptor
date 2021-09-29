@@ -93,6 +93,16 @@ async function completeRequest(response, requestId) {
     return
   }
 
+  completeRestRequest(response, requestId)
+}
+
+async function completeGenericRequest(
+  response,
+  requestId,
+  requests,
+  type,
+  name,
+) {
   const cloned = response.clone()
 
   const body = await cloned.body
@@ -107,104 +117,67 @@ async function completeRequest(response, requestId) {
       }
     })
 
-  const key = requestMap[requestId]
-  if (!requests[key]) return
-  requests[key].complete = true
-  const call = requests[key].calls.find(i => i.id === requestId)
+  const meta = requestTypes[requestId]
+  if (!meta) return
+  let request
+  const isREST = meta.type === REQUEST_TYPES.DEFAULT
+  if (isREST) {
+    request = requestMap[requestId]
+  } else {
+    request = meta[type]
+  }
+  if (!requests[request]) return
+  requests[request].complete = true
+  const call = requests[request].calls.find(i => i.id === requestId)
   if (!call) return
   Object.defineProperty(cloned, 'body', { writable: true })
   call.response = cloned
   call.complete = true
   call.response.body = body
 
-  if (call.request.url.pathname.match(/\.\w+$/)) return
+  if (isREST && call.request.url.pathname.match(/\.\w+$/)) return
+
   Cypress.log({
-    alias: aliases[key],
-    displayName: '[MSW] Fetch',
-    message: `${key}`,
+    alias: aliases[meta.operationName],
+    displayName: `[MSW] ${name}`,
+    message: `${request}`,
     consoleProps: () => ({
-      key,
+      [type]: request,
       url: call.request.url,
       request: call.request,
       response,
     }),
   })
+}
+
+async function completeRestRequest(response, requestId) {
+  return completeGenericRequest(
+    response,
+    requestId,
+    requests,
+    requestId,
+    'Fetch',
+  )
 }
 
 async function completeQuery(response, requestId) {
-  const body = await response.body
-    .getReader()
-    .read()
-    .then(({ value }) => {
-      const text = new TextDecoder('utf-8').decode(value)
-      try {
-        return JSON.parse(text)
-      } catch (err) {
-        return text
-      }
-    })
-
-  const meta = requestTypes[requestId]
-  if (!meta) return
-  const query = meta.operationName
-  if (!queries[query]) return
-  queries[query].complete = true
-  const call = queries[query].calls.find(i => i.id === requestId)
-  if (!call) return
-  Object.defineProperty(response, 'body', { writable: true })
-  call.response = response
-  call.complete = true
-  call.response.body = body
-
-  Cypress.log({
-    alias: aliases[meta.operationName],
-    displayName: '[MSW] Query',
-    message: `${query}`,
-    consoleProps: () => ({
-      query,
-      url: call.request.url,
-      request: call.request,
-      response,
-    }),
-  })
+  return completeGenericRequest(
+    response,
+    requestId,
+    queries,
+    'operationName',
+    'Query',
+  )
 }
 
 async function completeMutation(response, requestId) {
-  const body = await response.body
-    .getReader()
-    .read()
-    .then(({ value }) => {
-      const text = new TextDecoder('utf-8').decode(value)
-      try {
-        return JSON.parse(text)
-      } catch (err) {
-        return text
-      }
-    })
-
-  const meta = requestTypes[requestId]
-  if (!meta) return
-  const mutation = meta.operationName
-  if (!mutations[mutation]) return
-  mutations[mutation].complete = true
-  const call = mutations[mutation].calls.find(i => i.id === requestId)
-  if (!call) return
-  Object.defineProperty(response, 'body', { writable: true })
-  call.response = response
-  call.complete = true
-  call.response.body = body
-
-  Cypress.log({
-    alias: aliases[meta.operationName],
-    displayName: '[MSW] Mutation',
-    message: `${mutation}`,
-    consoleProps: () => ({
-      mutation,
-      url: call.request.url,
-      request: call.request,
-      response,
-    }),
-  })
+  return completeGenericRequest(
+    response,
+    requestId,
+    mutations,
+    'operationName',
+    'Mutation',
+  )
 }
 
 before(() => {
