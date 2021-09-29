@@ -7,8 +7,9 @@
     "cypress-msw-interceptor": "cli/index.js"
   },
   "scripts": {
-    "start": "snowpack dev",
+    "start:dev": "snowpack dev",
     "start:graphql": "nodemon graphql-server.js",
+    "start": "run-p start:*",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "test": "start-server-and-test 'yarn start' http://localhost:8080 'yarn cypress:run'"
