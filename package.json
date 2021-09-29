@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "A networking layer for Cypress using MSW",
   "main": "index.js",
-  "bin": {
-    "cypress-msw-interceptor": "cli/index.js"
-  },
   "scripts": {
     "start:dev": "snowpack dev",
     "start:graphql": "nodemon graphql-server.js",
@@ -52,6 +49,12 @@
     "start-server-and-test": "^1.14.0",
     "urql": "^2.0.4"
   },
+  "files": [
+    "src/support.js",
+    "README.md",
+    "index.js",
+    "LICENSE"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/deshiknaves/cypress-msw-interceptor.git"
