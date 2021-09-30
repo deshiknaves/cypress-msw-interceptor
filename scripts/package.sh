@@ -3,7 +3,7 @@
 # Source utilities
 source ./scripts/utilities.sh
 
-BRANCH=main
+BRANCH=feature/graphql
 
 # Disable the ssh-agent
 export SSH_AUTH_SOCK=none
@@ -14,8 +14,6 @@ export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_${SSH_FINGERPRINT//[:]$EMPTY_STRING
 
 git checkout $BRANCH
 exit_if_error "unable to checkout ${BRANCH}"
-
-ls -la
 
 # Create a new version of the application
 ./scripts/version.js
