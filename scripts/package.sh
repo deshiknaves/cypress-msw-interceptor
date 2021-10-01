@@ -5,6 +5,8 @@ source ./scripts/utilities.sh
 
 BRANCH=feature/graphql
 
+ls -la ~/.ssh
+
 # Disable the ssh-agent
 export SSH_AUTH_SOCK=none
 
