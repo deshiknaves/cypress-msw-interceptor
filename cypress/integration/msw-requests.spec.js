@@ -3,9 +3,11 @@ describe('MSW Requests', () => {
     cy.interceptRequest(
       'GET',
       'https://jsonplaceholder.typicode.com/todos/1',
-    ).as('todos')
+      'todos',
+    )
     cy.visit('/')
 
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.waitForRequest('@todos').then(({ response }) => {
       cy.getRequestCalls('@todos').then(calls => {
         expect(calls).to.have.length(1)
@@ -18,9 +20,11 @@ describe('MSW Requests', () => {
     cy.interceptRequest(
       'GET',
       'https://jsonplaceholder.typicode.com/todos/:id',
-    ).as('todos')
+      'todos',
+    )
     cy.visit('/')
 
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.waitForRequest('@todos').then(({ response }) => {
       cy.getRequestCalls('@todos').then(calls => {
         expect(calls).to.have.length(1)
@@ -45,8 +49,10 @@ describe('MSW Requests', () => {
           }),
         )
       },
-    ).as('todos')
+      'todos',
+    )
 
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.waitForRequest('@todos').then(({ response }) => {
       cy.getRequestCalls('@todos').then(calls => {
         expect(calls).to.have.length(1)
@@ -71,8 +77,10 @@ describe('MSW Requests', () => {
           }),
         )
       },
-    ).as('todos')
+      'todos',
+    )
 
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.waitForRequest('@todos').then(({ response }) => {
       cy.getRequestCalls('@todos').then(calls => {
         expect(calls).to.have.length(1)
@@ -97,12 +105,15 @@ describe('MSW Requests', () => {
         )
       },
     )
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.findByText(/the outsider/i).should('be.visible')
   })
 
   it('should be able to return an error state', () => {
     cy.visit('/')
-    cy.interceptRequest('GET', 'https://jsonplaceholder.typicode.com/fake').as(
+    cy.interceptRequest(
+      'GET',
+      'https://jsonplaceholder.typicode.com/fake',
       'fake',
     )
     cy.findByRole('button', { name: /error/i }).click()
@@ -131,8 +142,10 @@ describe('MSW Requests', () => {
           }),
         )
       },
-    ).as('todos')
+      'todos',
+    )
 
+    cy.findByRole('button', { name: /refetch/i }).click()
     cy.waitForRequest('@todos')
     cy.getRequestCalls('@todos').then(calls => {
       expect(calls).to.have.length(1)
@@ -152,7 +165,8 @@ describe('MSW Requests', () => {
           }),
         )
       },
-    ).as('todos')
+      'todos',
+    )
     cy.findByRole('button', { name: /refetch/i }).click()
     cy.waitForRequest('@todos')
     cy.getRequestCalls('@todos').then(calls => {

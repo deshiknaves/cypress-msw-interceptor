@@ -1,0 +1,89 @@
+version: 2.1
+parameters:
+  task:
+    type: string
+    default: default
+orbs:
+  cypress: cypress-io/cypress@1.29.0
+executors:
+  with-chrome:
+    docker:
+      - image: 'cypress/browsers:node14.16.0-chrome90-ff88'
+jobs:
+  package:
+    docker:
+      - image: circleci/node:14.17
+    description: 'Build and version the application'
+    working_directory: ~/repo
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - '07:b2:3f:a1:9d:45:d5:fa:80:f1:8c:b1:3e:c6:5e:b8'
+      - checkout
+      - run: git config --global user.email "nawal.rahim@gmail.com"
+      - run: git config --global user.name "Deshiknaves"
+      - restore_cache:
+          keys:
+            - node-dependencies-{{ checksum "yarn.lock" }}
+      - run: 'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
+      - run: yarn install --frozen-lockfile
+      - save_cache:
+          paths:
+            - node_modules
+          key: dependencies-{{ checksum "yarn.lock" }}
+      - run: ./scripts/package.sh
+      - run: echo "VERSION=v$(jq -r '.version' package.json)" >> $BASH_ENV
+workflows:
+  validate:
+    when:
+      and:
+        - equal: [default, << pipeline.parameters.task >>]
+        - not:
+            matches:
+              pattern: '^main$'
+              value: << pipeline.git.branch >>
+    jobs:
+      - cypress/install:
+          executor: with-chrome
+          yarn: true
+          cache-key: dependencies-cypress-{{ checksum "yarn.lock" }}
+      - cypress/run:
+          yarn: true
+          executor: with-chrome
+          install-command: yarn install --frozen-lockfile
+          record: true
+          browser: chrome
+          parallel: true
+          parallelism: 2
+          start: BROWSER=none NODE_ENV=cypress yarn start
+          wait-on: 'http://localhost:8080'
+          ci-build-id: 'build-${CIRCLE_BUILD_NUM}'
+          cache-key: node-dependencies-cypress-{{ checksum "yarn.lock" }}
+          requires:
+            - cypress/install
+  main:
+    when:
+      and:
+        - equal: [main, << pipeline.git.branch >>]
+        - equal: [default, << pipeline.parameters.task >>]
+    jobs:
+      - cypress/install:
+          executor: with-chrome
+          yarn: true
+          cache-key: node-dependencies-cypress-{{ checksum "yarn.lock" }}
+      - cypress/run:
+          executor: with-chrome
+          install-command: yarn install --frozen-lockfile
+          record: true
+          browser: chrome
+          parallel: true
+          parallelism: 2
+          start: BROWSER=none NODE_ENV=cypress yarn start
+          wait-on: 'http://localhost:8080'
+          ci-build-id: 'build-${CIRCLE_BUILD_NUM}'
+          cache-key: dependencies-cypress-{{ checksum "yarn.lock" }}
+          requires:
+            - cypress/install
+      - package:
+          requires:
+            - cypress/run

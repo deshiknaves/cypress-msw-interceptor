@@ -16,9 +16,9 @@ continuing in a test.
 To install the package run:
 
 ```shell
-$ npm install cypress-msw-interceptor --save-dev
+$ npm install cypress-msw-interceptor msw --save-dev
 # or
-$ yarn add cypress-msw-interceptor --dev
+$ yarn add cypress-msw-interceptor msw --dev
 ```
 
 Then in `cypress/support/index.js` add:
@@ -27,20 +27,12 @@ Then in `cypress/support/index.js` add:
 import 'cypress-msw-interceptor'
 ```
 
-Lastly we need to install the service worker.
-
-```shell
-$ npx cypress-msw-interceptor init <PUBLIC_DIR>
-```
-
-Replace the `<PUBLIC_DIR>` with the relative path to your application's public
-directory. More on this from the
+Lastly we need initialize msw. Follow the guide form
 [MSW website](https://mswjs.io/docs/getting-started/integrate/browser).
 
-**NOTE:** This is a prerelease and so it requires a modified version of the
-service worker provided by MSW. I will be raising PRs to MSW so that these
-features can be made available from the service worker provided out of the box
-from MSW (more details on this later).
+You don't need to configure the worker or create handlers unless you want to use
+it in your application too. The integration for `cypress-msw-interceptor` will
+happen automatically by importing `cypress-msw-interceptor`.
 
 ## Usage
 
@@ -107,7 +99,8 @@ it('should be able to wait for a request to happen before it checks for the text
         }),
       )
     },
-  ).as('todos')
+    'todos',
+  )
 
   cy.visit('/')
   cy.waitForRequest('@todos')
@@ -115,18 +108,25 @@ it('should be able to wait for a request to happen before it checks for the text
 })
 ```
 
-A request can be aliased using the `as` chained function after defining a
-`cy.interceptRequest` definition. The use `cy.waitForRequest` with the `alias`
-with a preceding `@` to wait for that request to complete before finding the
-text on the page. To learn more about Cypress aliases check out the
+A request can be aliased using the third or forth (depending if a mock is
+provided) argument to `cy.interceptRequest`. The use `cy.waitForRequest` with
+the `alias` with a preceding `@` to wait for that request to complete before
+finding the text on the page. To learn more about Cypress aliases check out the
 [Cypress Aliases Documentation](https://docs.cypress.io/guides/core-concepts/variables-and-aliases.html).
+
+`cy.interceptRequest` will also work with the native `.as('alias')` chainable
+from Cypress, but that will not show the pretty badge in the test runner if you
+do. It's recommended that you use the third or forth argument so you get the
+best debugging experience.
 
 This can also be done with a request that isn't mocked. This is particularly
 useful for end to end test:
 
 ```javascript
 it("should be able to wait for a request to happen that isn't mocked before it checks for the text", () => {
-  cy.interceptRequest('GET', 'https://jsonplaceholder.typicode.com/todos/1').as(
+  cy.interceptRequest(
+    'GET',
+    'https://jsonplaceholder.typicode.com/todos/1',
     'todos',
   )
   cy.visit('/')
@@ -162,7 +162,8 @@ cy.interceptRequest(
       }),
     )
   }),
-).as('todos')
+  'todos',
+)
 ```
 
 This way, you could choose to run some tests end to end in some environments and
@@ -191,7 +192,8 @@ it('should be able to get the response and check that the correct text is displa
         }),
       )
     },
-  ).as('todos')
+    'todos',
+  )
 
   cy.waitForRequest('@todos').then(({ request, response }) => {
     cy.findByText(new RegExp(response.body.title, 'i')).should('be.visible')
@@ -210,7 +212,9 @@ checked by using the `cy.getRequestCalls`:
 
 ```javascript
 cy.visit('/')
-cy.interceptRequest('GET', 'https://jsonplaceholder.typicode.com/todos/1').as(
+cy.interceptRequest(
+  'GET',
+  'https://jsonplaceholder.typicode.com/todos/1',
   'todos',
 )
 
@@ -243,7 +247,8 @@ it('should be able to update the mock', () => {
         }),
       )
     },
-  ).as('todos')
+    'todos',
+  )
 
   cy.waitForRequest('@todos')
   cy.getRequestCalls('@todos').then(calls => {
@@ -264,7 +269,8 @@ it('should be able to update the mock', () => {
         }),
       )
     },
-  ).as('todos')
+    'todos',
+  )
   cy.findByRole('button', { name: /refetch/i }).click()
   cy.waitForRequest('@todos')
   cy.getRequestCalls('@todos').then(calls => {
@@ -274,69 +280,119 @@ it('should be able to update the mock', () => {
 })
 ```
 
-## MSW Service Worker
+### GraphQL Query
 
-To make this work, there 2 modifications that had to be made to the MSW service
-worker. These are:
+MSW provides an easy way to mock GraphQL queries. To make the same API available
+`cypress-msw-interceptor` has custom Cypress extensions to work with that API.
 
-1. Add the ability for the `client` in Cypress to be able to provide the mocks
-   for the `client` in the application being tested (shared client).
-2. Add the ability for the service worker to be able to notify
-   `cypress-msw-interceptor` when a request is complete.
+To mock a query with the name of `CoursesQuery`:
 
-At this point in time, this is done my having a copy of the service worker from
-MSW with these modifications. However, the intention is to raise some PRs and
-hopefully, will get included out of the box. The current implementation is just
-a stop gap till it is possible to do without a copy.
+```javascript
+cy.interceptQuery(
+  'CoursesQuery',
+  (req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.data({
+        courses: [
+          {
+            userId: 1,
+            id: 1,
+            title: 'GET me some data',
+            completed: false,
+          },
+        ],
+      }),
+    )
+  },
+  'courses',
+)
+cy.visit('/')
 
-### Shared Client
+cy.findByRole('button', { name: /get graphql/i }).click()
+cy.waitForQuery('@courses').then(({ response }) => {
+  cy.getQueryCalls('@courses').then(calls => {
+    expect(calls).to.have.length(1)
+  })
+  cy.findByText(new RegExp(response.body.data.courses[0].title, 'i')).should(
+    'be.visible',
+  )
+})
+```
 
-Every application has their own `clientId` and MSW checks if mocks have been
-enabled for the `client` before intercepting the fetch requests. In this
-scenario that doesn't work, as we want the Cypress test runner to be able to
-define and intercept the mocks. To that end, I have modified the service worker
-to keep track of the `clientId` of the "shared" client and check that when
-making requests from the actual application.
+This can also be done for a query that hasn't been mocked:
 
-I have create a [draft PR](https://github.com/mswjs/msw/pull/383) that adds the
-ability to start the worker (`worker.start`) with an option to run it in a
-"shared" mode. The reason why this is still a draft is that I'd like some input
-from the maintainers — there might be better ways to do this.
+```javascript
+cy.interceptQuery('CoursesQuery', 'courses')
+cy.visit('/')
 
-### Notify on completion
+cy.findByRole('button', { name: /get graphql/i }).click()
+cy.waitForQuery('@courses').then(({ response }) => {
+  cy.getQueryCalls('@courses').then(calls => {
+    expect(calls).to.have.length(1)
+  })
+  cy.findByText(new RegExp(response.body.data.courses[0].title, 'i')).should(
+    'be.visible',
+  )
+})
+```
 
-In order to wait for `aliases` there needs to be a mechanism for the service
-worker to be able to notify when a request starts and when it is complete. Out
-of the box, there is a `message` (`REQUEST`) that can be emitted using
-`postMessage`. This has almost all the information needed. I've added a unique
-id to the request, so that we can track it.
+### GraphQL Mutation
 
-When a request is complete (mocked or unmocked), MSW needs to notify
-`cypress-msw-interceptor` that a request was complete. I have added a new
-`message` (`REQUEST_COMPLETE`) which provides all the context that is required.
+In a similar way to queries, there is an extension for GraphQL Mutations:
 
-I haven't raised a PR yet, but will in the next day or so — been busy proving
-that this can be done.
+```javascript
+cy.interceptMutation(
+  'UpdateCourse',
+  (req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.data({
+        courses: [
+          {
+            userId: 1,
+            id: 1,
+            title: 'GET me some data',
+            completed: false,
+          },
+        ],
+      }),
+    )
+  },
+  'updateCourse',
+)
+cy.visit('/')
 
-## Things remaining
+cy.findByRole('button', { name: /mutate graphql/i }).click()
+cy.waitForMutation('@updateCourse').then(({ response }) => {
+  cy.getMutationCalls('@updateCourse').then(calls => {
+    expect(calls).to.have.length(1)
+  })
+  cy.findByText(new RegExp(response.body.data.courses[0].title, 'i')).should(
+    'be.visible',
+  )
+})
+```
 
-This is an alpha release and is rough around the edges. In the next while, I
-will complete some of these missing elements:
+In a similar way, we can wait for requests that weren't mocked:
 
-- Currently, this only works with the `REST` api. This is only because it's
-  where I started. I don't forsee any reason why this won't translate to
-  `GraphQL`. Just needs time and testing.
-- Typescript definitions for the commands.
-- See what happens when both the application and Cypress provide a service
-  worker from MSW. I suggest not including the one in the application while
-  testing in Cypress — maybe though an environment variable.
+```javascript
+cy.interceptMutation('UpdateCourse', 'updateCourse')
+cy.visit('/')
+
+cy.findByRole('button', { name: /mutate graphql/i }).click()
+cy.waitForMutation('@updateCourse').then(({ response }) => {
+  cy.getMutationCalls('@updateCourse').then(calls => {
+    expect(calls).to.have.length(1)
+  })
+  cy.findByText(new RegExp(response.body.data.courses[0].title, 'i')).should(
+    'be.visible',
+  )
+})
+```
 
 ## Things I wish the Cypress plugin API would allow me to do
 
-- I wish there was a way to add `aliases` in a pill on the right side as
-  `cy.request` does. `Cypress.log` doesn't have a lot of options. Some messages
-  would be better unnested. However, these are purely cosmetic — I am a frontend
-  developer, I want it to be perfect.
 - Would be great if Cypress could host the service worker or serve static files.
   It would be nice not to have to put it in the `public` folder of the
   application.
@@ -346,13 +402,13 @@ will complete some of these missing elements:
 To start the development environment run:
 
 ```shell
-$ yarn install
-$ yarn start
+yarn install
+yarn start
 ```
 
 To run the Cypress tests run while the application is running in another
 terminal:
 
 ```shell
-$ yarn run cypress:open
+yarn run cypress:open
 ```
