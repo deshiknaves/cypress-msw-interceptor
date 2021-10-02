@@ -3,7 +3,7 @@
 # Source utilities
 source ./scripts/utilities.sh
 
-BRANCH=feature/graphql
+BRANCH=main
 
 ls -la ~/.ssh
 
@@ -29,9 +29,5 @@ exit_if_error "unable to push to ${BRANCH}"
 git push origin ${VERSION}
 exit_if_error "unable to push tag ${VERSION}"
 
-# Build production bundle
-CI=true yarn build
-exit_if_error "unable to build package"
-
 # Publish package to npm
-# yarn publish
+yarn publish

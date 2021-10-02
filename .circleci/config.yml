@@ -46,9 +46,6 @@ workflows:
       - cypress/install:
           executor: with-chrome
           yarn: true
-          pre-steps:
-            - run:
-                'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
           cache-key: dependencies-cypress-{{ checksum "yarn.lock" }}
       - cypress/run:
           yarn: true
@@ -67,15 +64,12 @@ workflows:
   main:
     when:
       and:
-        - equal: [feature/graphql, << pipeline.git.branch >>]
+        - equal: [main, << pipeline.git.branch >>]
         - equal: [default, << pipeline.parameters.task >>]
     jobs:
       - cypress/install:
           executor: with-chrome
           yarn: true
-          pre-steps:
-            - run:
-                'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc'
           cache-key: node-dependencies-cypress-{{ checksum "yarn.lock" }}
       - cypress/run:
           executor: with-chrome
