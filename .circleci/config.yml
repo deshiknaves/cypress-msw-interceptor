@@ -18,7 +18,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - $SSH_FINGERPRINT
+            - '07:b2:3f:a1:9d:45:d5:fa:80:f1:8c:b1:3e:c6:5e:b8'
       - checkout
       - run: git config --global user.email "nawal.rahim@gmail.com"
       - run: git config --global user.name "Deshiknaves"
