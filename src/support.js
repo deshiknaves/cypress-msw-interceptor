@@ -38,7 +38,7 @@ function registerRequestType(requestId, type, operationName) {
 }
 
 function registerRequest(request) {
-  if (request?.body?.operationName) {
+  if (request.body && request.body.operationName) {
     registerGraphQL(request)
   }
 
@@ -54,7 +54,8 @@ function registerRequest(request) {
 }
 
 function registerGraphQL(request) {
-  if (request?.body?.query.match(/^mutation/i)) {
+  const query = request.body && request.body.query
+  if (query && query.match(/^mutation/i)) {
     registerMutation(request)
   }
 
