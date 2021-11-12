@@ -71,7 +71,7 @@ This test will intercept a `GET` (method) request to
 `https://jsonplaceholder.typicode.com/todos/1` (route) and respond with the
 mocked payload returned from the response resolver.
 
-This is very similar to `cy.route` expect it uses MSW to mock the response. To
+This is very similar to `cy.route` except it uses MSW to mock the response. To
 learn more about the features of the response resolver, check out the
 [MSW documentation](https://mswjs.io/docs/basics/response-resolver).
 
