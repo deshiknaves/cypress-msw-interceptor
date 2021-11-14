@@ -27,12 +27,16 @@ Then in `cypress/support/index.js` add:
 import 'cypress-msw-interceptor'
 ```
 
-Lastly we need initialize msw. Follow the guide form
+Next we need initialize msw. Follow the guide form
 [MSW website](https://mswjs.io/docs/getting-started/integrate/browser).
 
 You don't need to configure the worker or create handlers unless you want to use
 it in your application too. The integration for `cypress-msw-interceptor` will
 happen automatically by importing `cypress-msw-interceptor`.
+
+Lastly, we need to set the `baseUrl` for Cypress so that Cypress starts at the
+same address as the application so that the service worker can be registered
+correctly.
 
 ## Usage
 
