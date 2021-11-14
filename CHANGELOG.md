@@ -1,5 +1,12 @@
 # cypress-msw-interceptor
 
+## 2.0.2
+
+### Patch Changes
+
+- 645190e: Update README to specify Cypress baseUrl so that the service worker
+  has loaded correctly.
+
 ## 2.0.1
 
 ### Patch Changes
