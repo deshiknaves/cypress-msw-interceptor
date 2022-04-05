@@ -84,6 +84,7 @@ function registerQuery(request) {
 
 async function completeRequest(response, requestId) {
   const type = requestTypes[requestId]
+  if (type == undefined) return
   if (type.type === REQUEST_TYPES.QUERY) {
     completeQuery(response, requestId)
     return
