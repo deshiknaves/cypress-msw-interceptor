@@ -1,5 +1,11 @@
 # cypress-msw-interceptor
 
+## 2.0.3
+
+### Patch Changes
+
+- fb43b7a: Null check for type in completeRequest
+
 ## 2.0.2
 
 ### Patch Changes
