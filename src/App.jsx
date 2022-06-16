@@ -10,6 +10,7 @@ const client = createClient({
 function App() {
   const [error, setError] = useState()
   const [data, setData] = useState()
+  const [status, setStatus] = useState();
 
   function getTodos() {
     fetch('https://jsonplaceholder.typicode.com/todos/1', {
@@ -17,7 +18,10 @@ function App() {
         'Content-Type': 'application/json',
       },
     })
-      .then(response => response.json())
+      .then(response => {
+        setStatus(response.status)
+        return response.json()
+      })
       .then(json => {
         setData(json)
       })
@@ -31,10 +35,23 @@ function App() {
       method,
       body: body && JSON.stringify(body),
     })
-      .then(response => response.json())
+      .then(response => {
+        setStatus(response.status)
+        return response.json()
+      })
       .then(json => {
         setData(json)
       })
+  }
+
+  function fetchNoContent() {
+    fetch('https://jsonplaceholder.typicode.com/nocontent').then(async response => {
+      setStatus(response.status)
+      if (!response.ok) {
+        setError(`Error: ${response.status}`)
+        return
+      }
+    })
   }
 
   function fetchError() {
@@ -54,6 +71,7 @@ function App() {
       <div className="App">
         {error && <p>{error}</p>}
         {data && <p>{JSON.stringify(data, null, 2)}</p>}
+        {status && <p data-test-id="statusCode">{status}</p> }
         <div>
           <h2>REST</h2>
           <button type="button" onClick={fetchError}>
@@ -61,6 +79,9 @@ function App() {
           </button>
           <button type="button" onClick={getTodos}>
             Refetch
+          </button>
+          <button type="button" onClick={fetchNoContent}>
+            No Content
           </button>
           <button type="button" onClick={() => fetchMethod('GET')}>
             GET

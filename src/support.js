@@ -107,7 +107,7 @@ async function completeGenericRequest(
 ) {
   const cloned = response.clone()
 
-  const body = await cloned.body
+  const body = cloned.body ? await cloned.body
     .getReader()
     .read()
     .then(({ value }) => {
@@ -117,7 +117,7 @@ async function completeGenericRequest(
       } catch (err) {
         return text
       }
-    })
+    }) : undefined
 
   const meta = requestTypes[requestId]
   if (!meta) return

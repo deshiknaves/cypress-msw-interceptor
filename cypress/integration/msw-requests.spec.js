@@ -174,4 +174,19 @@ describe('MSW Requests', () => {
     })
     cy.findByText(/the outsider/i).should('be.visible')
   })
+  it('should be able to mock a response with no data', () => {
+    cy.visit('/');
+    cy.interceptRequest(
+      'GET',
+      'https://jsonplaceholder.typicode.com/nocontent',
+      (req, res, ctx) => res(ctx.status(204)),
+      'noContent',
+    )
+    cy.findByRole('button', { name: /no content/i }).click()
+    cy.waitForRequest('@noContent')
+    cy.getRequestCalls('@noContent').then(calls => {
+      expect(calls).to.have.length(1)
+    })
+    cy.findByText(/204/i).should('be.visible')
+  })
 })
