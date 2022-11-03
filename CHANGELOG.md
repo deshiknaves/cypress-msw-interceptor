@@ -1,5 +1,11 @@
 # cypress-msw-interceptor
 
+## 2.1.0
+
+### Minor Changes
+
+- 6a61f43: Added support for nocontent reesponse
+
 ## 2.0.3
 
 ### Patch Changes
