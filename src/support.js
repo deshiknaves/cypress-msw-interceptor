@@ -135,7 +135,7 @@ async function completeGenericRequest(
   Object.defineProperty(cloned, 'body', { writable: true })
   call.response = cloned
   call.complete = true
-  call.response.body = body
+  //call.response.body = body
 
   if (isREST && call.request.url.pathname.match(/\.\w+$/)) return
 
@@ -191,9 +191,7 @@ before(() => {
 })
 
 Cypress.on('test:before:run', () => {
-  if (!worker) return
-
-  worker.resetHandlers()
+  console.log('CLEARING STUFF IN CYPRESS MSW');
   requests = {}
   requestMap = {}
   requestTypes = {}
@@ -201,6 +199,12 @@ Cypress.on('test:before:run', () => {
   routes = new Set()
   aliases = {}
   mutations = {}
+
+  worker && worker.resetHandlers();
+
+  if(!worker) {
+    console.log('WOULDNT HAVE CLEARED STUFF IN CYPRESS MSW');
+  }
 })
 
 Cypress.on('window:before:load', win => {
@@ -274,6 +278,16 @@ Cypress.Commands.add('getRequestCalls', alias => getCalls(requests, alias))
 Cypress.Commands.add('getQueryCalls', alias => getCalls(queries, alias))
 
 Cypress.Commands.add('getMutationCalls', alias => getCalls(mutations, alias))
+
+Cypress.Commands.add('cleanMSWData', () => {
+  requestTypes = {}
+  requests = {}
+  mutations = {}
+  queries = {}
+  routes = new Set()
+  requestMap = {}
+  aliases = {}
+});
 
 function interceptHandler(req, res, ctx, fn) {
   function customResponse(...args) {
