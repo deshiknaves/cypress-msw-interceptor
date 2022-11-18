@@ -3,6 +3,7 @@ require('cypress-wait-until')
 const { setupWorker, rest, graphql } = require('msw')
 const { match } = require('node-match-path')
 const { last } = Cypress._
+import * as fs from 'fs'
 
 const REQUEST_TYPES = {
   DEFAULT: 'DEFAULT',
@@ -18,6 +19,12 @@ let queries = {}
 let routes = new Set()
 let requestMap = {}
 let aliases = {}
+let workerOptions = {}
+let workerOptionsPath = process.env.MSW_WORKER_OPTIONS_PATH
+
+if (fs.existsSync(workerOptionsPath)){
+  workerOptions = fs.readFileSync(require.resolve(workerOptionsPath))
+}
 
 function requestKey(request) {
   return Array.from(routes).find(i => {
@@ -187,7 +194,7 @@ before(() => {
   worker.events.on('request:start', registerRequest)
   worker.events.on('response:mocked', completeRequest)
   worker.events.on('response:bypass', completeRequest)
-  cy.wrap(worker.start(), { log: false })
+  cy.wrap(worker.start(workerOptions), { log: false })
 })
 
 Cypress.on('test:before:run', () => {
