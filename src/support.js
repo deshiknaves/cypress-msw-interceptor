@@ -181,14 +181,16 @@ async function completeMutation(response, requestId) {
     'Mutation',
   )
 }
-
-before(() => {
-  worker = setupWorker()
-  worker.events.on('request:start', registerRequest)
-  worker.events.on('response:mocked', completeRequest)
-  worker.events.on('response:bypass', completeRequest)
-  cy.wrap(worker.start(), { log: false })
-})
+const setupMSW = (workerOptions = {}) => {
+  before(() => {
+    worker = setupWorker()
+    worker.events.on('request:start', registerRequest)
+    worker.events.on('response:mocked', completeRequest)
+    worker.events.on('response:bypass', completeRequest)
+    console.info('starting server with workerOptions', workerOptions);
+    cy.wrap(worker.start(workerOptions), { log: false })
+  })
+};
 
 Cypress.on('test:before:run', () => {
   if (!worker) return
@@ -348,3 +350,5 @@ Cypress.Commands.add('interceptMutation', function mock(name, ...args) {
 
   return setAlias(alias, name)
 })
+
+module.exports = setupMSW;

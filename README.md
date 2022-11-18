@@ -24,7 +24,13 @@ $ yarn add cypress-msw-interceptor msw --dev
 Then in `cypress/support/index.js` add:
 
 ```javascript
-import 'cypress-msw-interceptor'
+import mswSetup from 'cypress-msw-interceptor'
+mswSetup()
+```
+
+You can pass your [worker options](https://mswjs.io/docs/api/setup-worker/start) to the `mswSetup`.
+```javascript
+mswSetup({ quiet: true, onUnhandledRequest: "bypass" });
 ```
 
 Next we need initialize msw. Follow the guide form
