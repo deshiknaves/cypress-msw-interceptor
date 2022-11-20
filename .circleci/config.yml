@@ -12,7 +12,7 @@ executors:
 jobs:
   package:
     docker:
-      - image: circleci/node:14.17
+      - image: circleci/node:18.12
     description: 'Build and version the application'
     working_directory: ~/repo
     steps:
