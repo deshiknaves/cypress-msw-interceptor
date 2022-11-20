@@ -2,7 +2,7 @@
 require('cypress-wait-until')
 const { setupWorker, rest, graphql } = require('msw')
 const { match } = require('node-match-path')
-const { last } = Cypress._
+const { last, merge } = Cypress._
 
 const REQUEST_TYPES = {
   DEFAULT: 'DEFAULT',
@@ -11,6 +11,7 @@ const REQUEST_TYPES = {
 }
 
 let worker
+let workerOptions = { quiet: true, onUnhandledRequest: 'bypass' }
 let requestTypes = {}
 let requests = {}
 let mutations = {}
@@ -107,17 +108,19 @@ async function completeGenericRequest(
 ) {
   const cloned = response.clone()
 
-  const body = cloned.body ? await cloned.body
-    .getReader()
-    .read()
-    .then(({ value }) => {
-      const text = new TextDecoder('utf-8').decode(value)
-      try {
-        return JSON.parse(text)
-      } catch (err) {
-        return text
-      }
-    }) : undefined
+  const body = cloned.body
+    ? await cloned.body
+        .getReader()
+        .read()
+        .then(({ value }) => {
+          const text = new TextDecoder('utf-8').decode(value)
+          try {
+            return JSON.parse(text)
+          } catch (err) {
+            return text
+          }
+        })
+    : undefined
 
   const meta = requestTypes[requestId]
   if (!meta) return
@@ -187,7 +190,7 @@ before(() => {
   worker.events.on('request:start', registerRequest)
   worker.events.on('response:mocked', completeRequest)
   worker.events.on('response:bypass', completeRequest)
-  cy.wrap(worker.start(), { log: false })
+  cy.wrap(worker.start(workerOptions), { log: false })
 })
 
 Cypress.on('test:before:run', () => {
@@ -281,7 +284,7 @@ function interceptHandler(req, res, ctx, fn) {
     return response
   }
 
-  if (!fn) return
+  if (!fn) return req.passthrough()
 
   return fn(req, customResponse, ctx)
 }
@@ -348,3 +351,7 @@ Cypress.Commands.add('interceptMutation', function mock(name, ...args) {
 
   return setAlias(alias, name)
 })
+
+export function setMswWorkerOptions(options) {
+  workerOptions = merge(workerOptions, options)
+}
