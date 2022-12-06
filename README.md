@@ -27,6 +27,16 @@ Then in `cypress/support/index.js` add:
 import 'cypress-msw-interceptor'
 ```
 
+If you need to customize the
+[MSW Worker start options](https://mswjs.io/docs/api/setup-worker/start). You
+can do so like:
+
+```javascript
+import { setMswWorkerOptions }, 'cypress-msw-interceptor'
+
+setMswWorkerOptions({ quiet: true, onUnhandledRequest: 'bypass' })
+```
+
 Next we need initialize msw. Follow the guide form
 [MSW website](https://mswjs.io/docs/getting-started/integrate/browser).
 
