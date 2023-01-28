@@ -18,7 +18,7 @@ git checkout $BRANCH
 exit_if_error "unable to checkout ${BRANCH}"
 
 # Create a new version of the application
-./scripts/version.js
+yarn package-version
 exit_if_error "unable to update version"
 
 export VERSION=v$(jq -r '.version' package.json)

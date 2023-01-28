@@ -6,7 +6,7 @@
   "scripts": {
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "package": "tsx ./scripts/version.ts",
+    "package-version": "tsx ./scripts/version.ts",
     "start:dev": "snowpack dev",
     "start:graphql": "nodemon graphql-server.js",
     "start": "run-p start:*",
@@ -57,7 +57,8 @@
     "README.md",
     "index.js",
     "LICENSE"
-  ],  "repository": {
+  ],
+  "repository": {
     "type": "git",
     "url": "git+https://github.com/deshiknaves/cypress-msw-interceptor.git"
   },
