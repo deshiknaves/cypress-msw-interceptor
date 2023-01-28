@@ -1,5 +1,15 @@
 # cypress-msw-interceptor
 
+## 2.2.0
+
+### Minor Changes
+
+- efe305f: Add ability to set MSW worker start options
+
+### Patch Changes
+
+- efe305f: Upgrade internal Cypress version to 11
+
 ## 2.1.0
 
 ### Minor Changes
