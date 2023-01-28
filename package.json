@@ -4,11 +4,12 @@
   "description": "A networking layer for Cypress using MSW",
   "main": "index.js",
   "scripts": {
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "package": "tsx ./scripts/version.ts",
     "start:dev": "snowpack dev",
     "start:graphql": "nodemon graphql-server.js",
     "start": "run-p start:*",
-    "cypress:open": "cypress open",
-    "cypress:run": "cypress run",
     "test": "start-server-and-test 'yarn start' http://localhost:8080 'yarn cypress:run'"
   },
   "dependencies": {
@@ -47,7 +48,9 @@
     "react-dom": "^18.2.0",
     "snowpack": "^3.8.8",
     "start-server-and-test": "^1.14.0",
-    "urql": "^3.0.3"
+    "tsx": "^3.12.2",
+    "urql": "^3.0.3",
+    "zx": "^7.1.1"
   },
   "files": [
     "src/support.js",

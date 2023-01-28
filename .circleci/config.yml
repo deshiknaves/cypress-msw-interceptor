@@ -20,7 +20,7 @@ jobs:
           fingerprints:
             - '07:b2:3f:a1:9d:45:d5:fa:80:f1:8c:b1:3e:c6:5e:b8'
       - checkout
-      - run: git config --global user.email "nawal.rahim@gmail.com"
+      - run: git config --global user.email "nawalsrahim@gmail.com"
       - run: git config --global user.name "Deshiknaves"
       - restore_cache:
           keys:
@@ -31,7 +31,7 @@ jobs:
           paths:
             - node_modules
           key: dependencies-{{ checksum "yarn.lock" }}
-      - run: ./scripts/package.sh
+      - run: yarn package
       - run: echo "VERSION=v$(jq -r '.version' package.json)" >> $BASH_ENV
 workflows:
   validate:
