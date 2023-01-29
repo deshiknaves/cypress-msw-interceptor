@@ -11,6 +11,7 @@ const REQUEST_TYPES = {
 }
 
 let worker
+let workerHandlers
 let workerOptions = { quiet: true, onUnhandledRequest: 'bypass' }
 let requestTypes = {}
 let requests = {}
@@ -29,7 +30,7 @@ function requestKey(request) {
 }
 
 function makeUniqueKey(request) {
-  return `${request.method}:${request.url}`
+  return `${request.method}:${request.url.pathname}`
 }
 
 function registerRequestType(requestId, type, operationName) {
@@ -186,7 +187,8 @@ async function completeMutation(response, requestId) {
 }
 
 before(() => {
-  worker = setupWorker()
+  const handlers = Array.isArray(workerHandlers) ? workerHandlers : [];
+  worker = setupWorker(...handlers)
   worker.events.on('request:start', registerRequest)
   worker.events.on('response:mocked', completeRequest)
   worker.events.on('response:bypass', completeRequest)
@@ -307,11 +309,13 @@ function getInterceptArgs(...args) {
 Cypress.Commands.add('interceptRequest', function mock(type, route, ...args) {
   const { alias, fn } = getInterceptArgs(...args)
   const method = type.toUpperCase()
-  worker.use(
-    rest[method.toLowerCase()](route, (req, res, ctx) => {
-      return interceptHandler(req, res, ctx, fn)
-    }),
-  )
+  if (!workerHandlers) {
+    worker.use(
+      rest[method.toLowerCase()](route, (req, res, ctx) => {
+        return interceptHandler(req, res, ctx, fn)
+      }),
+    )
+  }
 
   const key = `${method}:${route}`
   routes.add(key)
@@ -332,26 +336,34 @@ function setAlias(alias, value) {
 
 Cypress.Commands.add('interceptQuery', function mock(name, ...args) {
   const { alias, fn } = getInterceptArgs(...args)
-  worker.use(
-    graphql.query(name, (req, res, ctx) => {
-      return interceptHandler(req, res, ctx, fn)
-    }),
-  )
+  if (!workerHandlers) {
+    worker.use(
+      graphql.query(name, (req, res, ctx) => {
+        return interceptHandler(req, res, ctx, fn)
+      }),
+    )
+  }
 
   return setAlias(alias, name)
 })
 
 Cypress.Commands.add('interceptMutation', function mock(name, ...args) {
   const { alias, fn } = getInterceptArgs(...args)
-  worker.use(
-    graphql.mutation(name, (req, res, ctx) => {
-      return interceptHandler(req, res, ctx, fn)
-    }),
-  )
+  if (!workerHandlers) {
+    worker.use(
+      graphql.mutation(name, (req, res, ctx) => {
+        return interceptHandler(req, res, ctx, fn)
+      }),
+    )
+  }
 
   return setAlias(alias, name)
 })
 
 export function setMswWorkerOptions(options) {
   workerOptions = merge(workerOptions, options)
+}
+
+export function setMswWorkerHandlers(handlers) {
+  workerHandlers = handlers
 }
