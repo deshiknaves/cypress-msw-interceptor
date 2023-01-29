@@ -3,6 +3,7 @@
   "version": "2.2.0",
   "description": "A networking layer for Cypress using MSW",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
@@ -56,6 +57,7 @@
     "src/support.js",
     "README.md",
     "index.js",
+    "index.d.ts",
     "LICENSE"
   ],
   "repository": {
