@@ -32,7 +32,7 @@ If you need to customize the
 can do so like:
 
 ```javascript
-import { setMswWorkerOptions }, 'cypress-msw-interceptor'
+import { setMswWorkerOptions} from 'cypress-msw-interceptor/src/support';
 
 setMswWorkerOptions({ quiet: true, onUnhandledRequest: 'bypass' })
 ```
